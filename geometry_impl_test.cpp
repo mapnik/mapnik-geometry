@@ -25,6 +25,7 @@
 #include <vector>
 #include <cassert>
 
+#include <mapnik/util/variant.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/geometry_container.hpp>
 #include <boost/timer/timer.hpp>

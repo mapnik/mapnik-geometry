@@ -22,7 +22,14 @@
 
 #include <vector>
 #include <mapnik/util/variant.hpp>
+#include <mapnik/vertex.hpp>
 
+#include <algorithm>
+#include <vector>
+#include <tuple>
+#include <type_traits>
+#include <cstddef>
+#include <utility>
 
 namespace mapnik { namespace new_geometry {
 
