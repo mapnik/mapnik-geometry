@@ -27,11 +27,16 @@
 
 #include <mapnik/geometry.hpp>
 #include <mapnik/geometry_container.hpp>
-#include <mapnik/util/geometry_to_geojson.hpp>
-#include <mapnik/json/geometry_generator_grammar_impl.hpp>
+
 #include <boost/timer/timer.hpp>
 
 #include "geometry_impl.hpp"
+
+//#include <mapnik/util/geometry_to_geojson.hpp>
+
+#include <mapnik/json/geometry_generator_grammar.hpp>
+#include <mapnik/json/geometry_generator_grammar_impl.hpp>
+#include <boost/spirit/include/support_container.hpp>
 
 
 namespace boost { namespace spirit { namespace traits {
@@ -69,6 +74,8 @@ struct end_container<mapnik::new_geometry::vertex_adapter const>
 
 }}}
 
+
+
 namespace mapnik  {
 
 template <typename Geometry>
@@ -91,74 +98,80 @@ bool to_geojson_2(std::string & json, GeometryContainer const& geom_cont)
 
 } // namespace mapnik
 
+
 int main(int argc, char ** argv)
 {
 
 #if 0
-    std::cerr << "mapnik::geometry type " << std::endl;
-    mapnik::geometry_container geom_cont;
-    for (int n = 0; n < 1; ++n)
     {
-        std::unique_ptr<mapnik::geometry_type> poly(
-            new mapnik::geometry_type(mapnik::geometry_type::types::Polygon));
-        for (int j =0 ; j < 2;++j)
+        std::cerr << "mapnik::geometry type " << std::endl;
+        mapnik::geometry_container geom_cont;
+        for (int n = 0; n < 1; ++n)
         {
-            for (size_t i=0; i < 10;++i)
+            std::unique_ptr<mapnik::geometry_type> poly(
+                new mapnik::geometry_type(mapnik::geometry_type::types::Polygon));
+            for (int j =0 ; j < 2;++j)
             {
-                double x = i;
-                double y = 10 - i;
-                if (i==0)
-                    poly->move_to(x,y);
-                else
-                    poly->line_to(x,y);
+                for (size_t i=0; i < 10;++i)
+                {
+                    double x = i;
+                    double y = 10 - i;
+                    if (i==0)
+                        poly->move_to(x,y);
+                    else
+                        poly->line_to(x,y);
 
+                }
+                poly->close_path();
             }
-            poly->close_path();
+            geom_cont.push_back(poly.release());
         }
-        geom_cont.push_back(poly.release());
-    }
-    for (auto const& geom : geom_cont)
-    {
-        std::string json;
-        mapnik::util::to_geojson(json, geom);
-        std::cerr << json << std::endl;
+        for (auto const& geom : geom_cont)
+        {
+            std::string json;
+            mapnik::to_geojson_1(json, geom);
+            std::cerr << json << std::endl;
+        }
     }
 #endif
 
 #if 1
-    std::vector<mapnik::new_geometry::geometry> geom_cont;
-
-    for (int n = 0; n < 1; ++n)
     {
-        mapnik::new_geometry::polygon2 poly;
+        std::vector<mapnik::new_geometry::geometry> geom_cont;
 
-        for (int j =0 ; j < 2;++j)
+        for (int n = 0; n < 1; ++n)
         {
-            mapnik::new_geometry::line_string ring;
-            ring.reserve(10);
-            for (size_t i=0; i < 10;++i)
-            {
-                double x = i;
-                double y = 10 - i;
-                ring.add_coord(x, y);
-            }
-            poly.add_ring(std::move(ring));
-        }
-        geom_cont.push_back(mapnik::new_geometry::geometry(std::move(poly)));
-    }
+            mapnik::new_geometry::polygon2 poly;
 
-    for (auto const& geom : geom_cont)
-    {
-        //mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter> itr(geom);
-        //mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter> end;
-        //for (; itr!=end; ++itr)
-        //{
-        //   std::cerr << std::get<0>(*itr) << " " << std::get<1>(*itr) << "," <<  std::get<2>(*itr) << std::endl;
-        //}
-        std::string json;
-        mapnik::new_geometry::vertex_adapter v_adapter(geom);
-        mapnik::to_geojson_1(json, v_adapter);
-        std::cerr << json << std::endl;
+            for (int j =0 ; j < 2;++j)
+            {
+                mapnik::new_geometry::line_string ring;
+                ring.reserve(10);
+                for (size_t i=0; i < 10;++i)
+                {
+                    double x = i;
+                    double y = 10 - i;
+                    ring.add_coord(x, y);
+                }
+                poly.add_ring(std::move(ring));
+            }
+            geom_cont.push_back(mapnik::new_geometry::geometry(std::move(poly)));
+        }
+        mapnik::new_geometry::point pt(100,200);
+        geom_cont.push_back(mapnik::new_geometry::geometry(std::move(pt)));
+        for (auto const& geom : geom_cont)
+        {
+            //mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter> itr(geom);
+            //mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter> end;
+            //for (; itr!=end; ++itr)
+            //{
+            //   std::cerr << std::get<0>(*itr) << " " << std::get<1>(*itr) << "," <<  std::get<2>(*itr) << std::endl;
+            //}
+            std::string json;
+            mapnik::new_geometry::vertex_adapter v_adapter(geom);
+            mapnik::to_geojson_1(json, v_adapter);
+            std::cerr << json << std::endl;
+        }
     }
 #endif
 
