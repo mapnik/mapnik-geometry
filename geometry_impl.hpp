@@ -151,7 +151,7 @@ struct polygon : vertex_sequence
     }
 };
 
-typedef mapnik::util::variant< point,line_string, polygon, polygon2> geometry;
+typedef mapnik::util::variant< point,line_string, polygon2, polygon> geometry;
 
 struct point_vertex_adapter
 {
@@ -327,13 +327,17 @@ private:
 };
 
 
-typedef mapnik::util::variant<point_vertex_adapter, line_string_vertex_adapter, polygon_vertex_adapter, polygon_vertex_adapter_2> vertex_adapter_base;
+using vertex_adapter_base =  mapnik::util::variant<point_vertex_adapter,
+                                                   line_string_vertex_adapter,
+                                                   polygon_vertex_adapter,
+                                                   polygon_vertex_adapter_2>;
 
-struct vertex_adapter : vertex_adapter_base
+struct vertex_adapter
 {
+    using base_type = vertex_adapter_base;
     using coord_type = double;
     using value_type = std::tuple<unsigned,coord_type,coord_type>;
-
+    using size_type = std::size_t;
     struct create_adapter : public mapnik::util::static_visitor<vertex_adapter_base>
     {
         vertex_adapter_base operator() (point const& pt) const
@@ -346,7 +350,7 @@ struct vertex_adapter : vertex_adapter_base
             return line_string_vertex_adapter(line);
         }
 
-        vertex_adapter operator() (polygon const& poly) const
+        vertex_adapter_base operator() (polygon const& poly) const
         {
             return polygon_vertex_adapter(poly);
         }
@@ -381,28 +385,49 @@ struct vertex_adapter : vertex_adapter_base
         double & y;
     };
 
-    template<typename T>
-    vertex_adapter(T && adapter) noexcept
-        : vertex_adapter_base(std::move(adapter)) {}
+    struct type_dispatch : mapnik::util::static_visitor<geometry_types>
+    {
+        geometry_types operator() (point_vertex_adapter const&) const
+        {
+            return Point;
+        }
+        geometry_types operator() (line_string_vertex_adapter const&) const
+        {
+            return LineString;
+        }
+        geometry_types operator() (polygon_vertex_adapter const&) const
+        {
+            return Polygon;
+        }
+        geometry_types operator() (polygon_vertex_adapter_2 const&) const
+        {
+            return Polygon;
+        }
+    };
 
     template<typename T>
-    vertex_adapter(T const& geom)
-        : vertex_adapter_base(mapnik::util::apply_visitor(create_adapter(), geom)) {}
+    vertex_adapter(T && adapter) noexcept
+        : base_(std::move(adapter)) {}
+
+    //template<typename T>
+    vertex_adapter(geometry const& geom)
+        : base_(mapnik::util::apply_visitor(create_adapter(), geom)) {}
 
     void rewind(unsigned) const
     {
-        mapnik::util::apply_visitor(vertex_adapter::rewind_dispatch(), *this);
+        mapnik::util::apply_visitor(vertex_adapter::rewind_dispatch(), base_);
     }
 
     unsigned vertex( double *x, double *y) const
     {
-        return mapnik::util::apply_visitor(vertex_adapter::vertex_dispatch(*x, *y), *this);
+        return mapnik::util::apply_visitor(vertex_adapter::vertex_dispatch(*x, *y), base_);
     }
 
     geometry_types type() const
     {
-        return Polygon;
+        return mapnik::util::apply_visitor(vertex_adapter::type_dispatch(), base_);
     }
+    base_type base_;
 };
 
 struct vertex_adapter_factory
@@ -426,7 +451,7 @@ struct vertex_adapter_factory
 
         vertex_adapter operator() (polygon2 const& poly) const
         {
-            return std::move(polygon_vertex_adapter_2(poly));
+            return polygon_vertex_adapter_2(poly);
         }
     };
 
