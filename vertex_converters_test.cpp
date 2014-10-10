@@ -27,18 +27,19 @@
 
 #include <mapnik/geometry.hpp>
 #include <mapnik/geometry_container.hpp>
-
-#include <boost/timer/timer.hpp>
-
 #include <mapnik/feature_factory.hpp>
 #include <mapnik/json/feature_parser.hpp>
 #include <mapnik/vertex_converters.hpp>
-
 #include <mapnik/json/geometry_generator_grammar.hpp>
 #include <mapnik/json/geometry_generator_grammar_impl.hpp>
 #include <mapnik/json/geometry_grammar_impl.hpp>
 #include <mapnik/json/feature_grammar_impl.hpp>
+
+#include <boost/timer/timer.hpp>
 #include <boost/spirit/include/support_container.hpp>
+
+
+#include "geometry_impl.hpp"
 
 
 namespace boost { namespace spirit { namespace traits {

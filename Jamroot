@@ -1,6 +1,7 @@
 local BOOST_DIR = "/opt/boost" ;
 local MAPNIK_DIR = "/opt/mapnik" ;
-local MAPNIK_DEPS_DIR = "/opt/icu" ;
+local MAPNIK_DEPS_DIR = "/opt/mapnik_deps" ;
+local ICU_DIR = "/opt/icu" ;
 
 lib mapnik : : <name>mapnik <search>$(MAPNIK_DIR)/lib ;
 lib icuuc : : <name>icuuc <search>/opt/icu/lib ;
@@ -19,7 +20,7 @@ exe geometry_impl_test :
     :
     <include>$(BOOST_DIR)/include
     <include>$(MAPNIK_DIR)/include
-    <include>$(MAPNIK_DEPS_DIR)/include
+    <include>$(ICU_DIR)/include
     <cxxflags>-DBIGINT
     ;
 
@@ -33,7 +34,7 @@ exe json_generator_test :
     :
     <include>$(BOOST_DIR)/include
     <include>$(MAPNIK_DIR)/include
-    <include>$(MAPNIK_DEPS_DIR)/include
+    <include>$(ICU_DIR)/include
     <cxxflags>-DBIGINT
     ;
 
@@ -45,8 +46,11 @@ exe vertex_converters_test :
     .//chrono
     .//mapnik
     :
+    <include>.
     <include>$(BOOST_DIR)/include
     <include>$(MAPNIK_DIR)/include
     <include>$(MAPNIK_DEPS_DIR)/include
+    <include>$(MAPNIK_DIR)/include/mapnik/agg
+    <include>$(ICU_DIR)/include
     <cxxflags>-DBIGINT
     ;
