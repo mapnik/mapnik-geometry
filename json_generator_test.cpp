@@ -56,7 +56,6 @@ struct begin_container<mapnik::new_geometry::vertex_adapter const>
     static mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter>
     call (mapnik::new_geometry::vertex_adapter const& g)
     {
-        std::cerr << "begin_container" << std::endl;
         return mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter>(g);
     }
 };
@@ -161,12 +160,6 @@ int main(int argc, char ** argv)
         geom_cont.push_back(mapnik::new_geometry::geometry(std::move(pt)));
         for (auto const& geom : geom_cont)
         {
-            //mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter> itr(geom);
-            //mapnik::util::path_iterator<mapnik::new_geometry::vertex_adapter> end;
-            //for (; itr!=end; ++itr)
-            //{
-            //   std::cerr << std::get<0>(*itr) << " " << std::get<1>(*itr) << "," <<  std::get<2>(*itr) << std::endl;
-            //}
             std::string json;
             mapnik::new_geometry::vertex_adapter v_adapter(geom);
             mapnik::to_geojson_1(json, v_adapter);
