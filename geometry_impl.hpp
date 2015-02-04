@@ -23,6 +23,7 @@
 #include <vector>
 #include <mapnik/util/variant.hpp>
 #include <mapnik/vertex.hpp>
+#include <mapnik/util/noncopyable.hpp>
 
 #include <algorithm>
 #include <vector>
@@ -53,6 +54,7 @@ struct point
     point(point const& other)
         : x(other.x),
           y(other.y) {}
+
     point(point && other) noexcept = default;
 
     point & operator=(point other)
@@ -81,11 +83,7 @@ struct line_string : vertex_sequence
     iterator_type end() const { return data.end(); }
 
     line_string() = default;
-    //line_string( line_string && other) noexcept
-    //: data(std::move(other.data)) {}
-    //line_string (line_string const&) = delete;
     line_string (line_string && other) = default ;
-
     void add_coord(double x, double y)
     {
         data.emplace_back(x,y);
@@ -109,7 +107,6 @@ struct polygon2
 
 struct polygon : vertex_sequence
 {
-    //line_string::cont_type data;
     typedef line_string::cont_type::const_iterator iterator_type;
     std::vector<std::tuple<std::uint32_t, std::uint32_t> > rings;
     // ring's element count. first ring exterior, subsequent rings are interior
@@ -123,11 +120,7 @@ struct polygon : vertex_sequence
         std::size_t count = ring.data.size();
         if (count != 0)
         {
-            //std::cerr << start << ":" << count << std::endl;
-            //data.reserve(start+count);
             std::move(ring.data.begin(),ring.data.end(), std::back_inserter(data));
-            //std::move(std::make_move_iterator(ring.data.begin()),
-            //          std::make_move_iterator(ring.data.end()), std::back_inserter(data));
             rings.emplace_back(start,count);
         }
     }
@@ -218,7 +211,7 @@ struct line_string_vertex_adapter
 
 };
 
-struct polygon_vertex_adapter //: mapnik::noncopyable
+struct polygon_vertex_adapter
 {
     polygon_vertex_adapter(polygon const& poly)
         : poly_(poly),
@@ -227,8 +220,6 @@ struct polygon_vertex_adapter //: mapnik::noncopyable
           current_index_(0),
           end_index_(0),
           start_loop_(false) {}
-
-    //polygon_vertex_adapter(polygon_vertex_adapter && other) noexcept = default;
 
     void rewind(unsigned) const
     {
@@ -338,7 +329,7 @@ struct vertex_adapter
     using coord_type = double;
     using value_type = std::tuple<unsigned,coord_type,coord_type>;
     using size_type = std::size_t;
-    struct create_adapter : public mapnik::util::static_visitor<vertex_adapter_base>
+    struct create_adapter
     {
         vertex_adapter_base operator() (point const& pt) const
         {
@@ -361,7 +352,7 @@ struct vertex_adapter
         }
     };
 
-    struct rewind_dispatch : public mapnik::util::static_visitor<void>
+    struct rewind_dispatch
     {
         template <typename T>
         void operator() (T const& adapter) const
@@ -370,7 +361,7 @@ struct vertex_adapter
         }
     };
 
-    struct vertex_dispatch : public mapnik::util::static_visitor<unsigned>
+    struct vertex_dispatch
     {
         vertex_dispatch(double &x_, double &y_)
             : x(x_),y(y_) {}
@@ -385,7 +376,7 @@ struct vertex_adapter
         double & y;
     };
 
-    struct type_dispatch : mapnik::util::static_visitor<geometry_types>
+    struct type_dispatch
     {
         geometry_types operator() (point_vertex_adapter const&) const
         {
@@ -432,7 +423,7 @@ struct vertex_adapter
 
 struct vertex_adapter_factory
 {
-    struct dispatch : public mapnik::util::static_visitor<vertex_adapter>
+    struct dispatch
     {
         vertex_adapter operator() (point const& pt) const
         {
