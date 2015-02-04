@@ -54,14 +54,12 @@ int main(int argc, char ** argv)
     const int NUM_RINGS=std::stol(argv[2]);
     const int NUM_POINTS=std::stol(argv[3]);
 
-    //typedef std::vector<mapnik::new_geometry::geometry> geom_cont_type;
 
-    for (int i=0;i<2;++i)
+    for (int i=0; i < 3 ; ++i)
     {
 
-
-        { //mapnik::geometry_type
-#if 1
+#ifdef  MAPNIK_GEOMETRY_POLYGON
+        {
             std::cerr << "mapnik::geometry type " << std::endl;
             boost::timer::auto_cpu_timer t;
             mapnik::geometry_container geom_cont;
@@ -90,24 +88,63 @@ int main(int argc, char ** argv)
             long count = 0;
             for (auto const& poly : geom_cont)
             {
-                //std::vector<std::tuple<unsigned,double,double>> sink;
                 poly.rewind(0);
                 for (;;)
                 {
                     double x,y;
                     unsigned cmd = poly.vertex(&x,&y);
                     if (cmd == mapnik::SEG_END) break;
-                    //sink.emplace_back(cmd,x,y);
                     ++count;
                 }
             }
             std::cerr << "--------count = " << count << std::endl;
-
-#endif
         }
+#endif
 
+#ifdef NEW_GEOMETRY_POLYGON
         {
-            std::cerr << "==============  new geometry" << std::endl;
+            std::cerr << "==============  new geometry polygon" << std::endl;
+            boost::timer::auto_cpu_timer t;
+            std::vector<mapnik::new_geometry::geometry> geom_cont;
+
+            for (int n = 0; n < NUM_GEOM; ++n)
+            {
+                mapnik::new_geometry::polygon poly;
+
+                for (int j =0 ; j < NUM_RINGS;++j)
+                {
+                    mapnik::new_geometry::line_string ring;
+                    ring.reserve(NUM_POINTS);
+                    for (size_t i=0; i < NUM_POINTS;++i)
+                    {
+                        double x = i;
+                        double y = NUM_POINTS-i;
+                        ring.add_coord(x, y);
+                    }
+                    poly.add_ring(std::move(ring));
+                }
+                geom_cont.emplace_back(std::move(poly));
+            }
+            long count = 0;
+            for (auto const& geom : geom_cont)
+            {
+                mapnik::new_geometry::vertex_adapter v_adapter(geom);
+                v_adapter.rewind(0);
+                for  (;;)
+                {
+                    double x,y;
+                    unsigned cmd = v_adapter.vertex(&x, &y);
+                    if (cmd == mapnik::SEG_END) break;
+                    ++count;
+                }
+            }
+            std::cerr << "new geom count=" << count << std::endl;
+        }
+#endif
+
+#ifdef NEW_GEOMETRY_POLYGON_2
+        {
+            std::cerr << "==============  new geometry polygon2" << std::endl;
             boost::timer::auto_cpu_timer t;
             std::vector<mapnik::new_geometry::geometry> geom_cont;
 
@@ -127,34 +164,24 @@ int main(int argc, char ** argv)
                     }
                     poly.add_ring(std::move(ring));
                 }
-
-                //mapnik::new_geometry::geometry geom(std::move(poly));
-                geom_cont.push_back(mapnik::new_geometry::geometry(std::move(poly)));
+                geom_cont.emplace_back(std::move(poly));
             }
-#if 1
             long count = 0;
-
             for (auto const& geom : geom_cont)
             {
-                //mapnik::new_geometry::vertex_adapter v_adapter = mapnik::new_geometry::vertex_adapter_factory::create(geom);
                 mapnik::new_geometry::vertex_adapter v_adapter(geom);
-                //mapnik::new_geometry::polygon_vertex_adapter_2 v_adapter(geom.get<mapnik::new_geometry::polygon2>());
                 v_adapter.rewind(0);
-                //std::cerr << typeid(v_adapter).name() << std::endl;
-                //std::vector<std::tuple<unsigned,double,double>> sink;
                 for  (;;)
                 {
                     double x,y;
                     unsigned cmd = v_adapter.vertex(&x, &y);
                     if (cmd == mapnik::SEG_END) break;
-                    //sink.emplace_back(cmd,x,y);
-                    //std::cerr << "cmd=" << int(cmd) << " " << x << "," << y << std::endl;
                     ++count;
                 }
             }
             std::cerr << "new geom count=" << count << std::endl;
+        }
 #endif
-        }
-        }
-        return EXIT_SUCCESS;
     }
+    return EXIT_SUCCESS;
+}

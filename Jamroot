@@ -21,7 +21,10 @@ exe geometry_impl_test :
     <include>$(BOOST_DIR)/include
     <include>$(MAPNIK_DIR)/include
     <include>$(ICU_DIR)/include
-    <cxxflags>-DBIGINT
+    <define>BIGINT
+    <define>MAPNIK_GEOMETRY_POLYGON
+    #<define>NEW_GEOMETRY_POLYGON
+    <define>NEW_GEOMETRY_POLYGON_2
     ;
 
 exe json_generator_test :
