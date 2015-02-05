@@ -48,6 +48,7 @@ enum geometry_types : std::uint8_t
 
 struct point
 {
+    point() {}
     point(double x_, double y_)
         : x(x_),y(y_) {}
 
@@ -57,9 +58,12 @@ struct point
 
     point(point && other) noexcept = default;
 
-    point & operator=(point other)
+    point & operator=(point const& other)
     {
-        std::swap(*this,other);
+        if (this == &other) return *this;
+        point tmp(other);
+        std::swap(x, tmp.x);
+        std::swap(y, tmp.y);
         return *this;
     }
     double x;
@@ -78,10 +82,12 @@ struct vertex_sequence
 
 struct line_string : vertex_sequence
 {
-    typedef cont_type::const_iterator iterator_type;
-    iterator_type begin() const { return data.begin(); }
-    iterator_type end() const { return data.end(); }
-
+    using const_iterator_type = cont_type::const_iterator;
+    using iterator_type = cont_type::iterator;
+    iterator_type begin() { return data.begin(); }
+    iterator_type end() { return data.end(); }
+    const_iterator_type begin() const { return data.begin(); }
+    const_iterator_type end() const { return data.end(); }
     line_string() = default;
     line_string (line_string && other) = default ;
     void add_coord(double x, double y)

@@ -57,3 +57,18 @@ exe vertex_converters_test :
     <include>$(ICU_DIR)/include
     <cxxflags>-DBIGINT
     ;
+
+exe geometry_adapters
+    :
+    geometry_adapters.cpp
+    .//icuuc
+    .//system
+    .//timer
+    .//chrono
+    .//mapnik
+    :
+    <include>$(BOOST_DIR)/include
+    <include>$(MAPNIK_DIR)/include
+    <include>$(ICU_DIR)/include
+    <define>BIGINT
+    ;
