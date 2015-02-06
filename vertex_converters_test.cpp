@@ -35,9 +35,7 @@
 #include <mapnik/json/geometry_grammar_impl.hpp>
 #include <mapnik/json/feature_grammar_impl.hpp>
 
-#include <boost/timer/timer.hpp>
 #include <boost/spirit/include/support_container.hpp>
-
 
 #include "geometry_impl.hpp"
 
@@ -104,7 +102,7 @@ bool to_geojson_2(std::string & json, GeometryContainer const& geom_cont)
 struct to_json_converter
 {
     template <typename T>
-    void add_path(T & path)
+    void add_path(T &)
     {
         std::cerr << "add_path" << std::endl;
     }
