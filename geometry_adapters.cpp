@@ -25,13 +25,22 @@
 #include <cassert>
 
 #include <boost/timer/timer.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-local-typedef"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
+#pragma GCC diagnostic pop
 
 #include "geometry_impl.hpp"
 #include "geometry_adapters.hpp"
 
-int main(int argc, char ** argv)
+int main(int, char **)
 {
 
     std::cerr << "Boost.Geometry adapters" << std::endl;
