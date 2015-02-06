@@ -98,10 +98,10 @@ bool to_geojson_2(std::string & json, GeometryContainer const& geom_cont)
 } // namespace mapnik
 
 
-int main(int argc, char ** argv)
+int main(int, char **)
 {
 
-#if 0
+#if 1
     {
         std::cerr << "mapnik::geometry type " << std::endl;
         mapnik::geometry_container geom_cont;
@@ -136,8 +136,8 @@ int main(int argc, char ** argv)
 
 #if 1
     {
+        std::cerr << "mapnik::new_geometry type " << std::endl;
         std::vector<mapnik::new_geometry::geometry> geom_cont;
-
         for (int n = 0; n < 1; ++n)
         {
             mapnik::new_geometry::polygon2 poly;
