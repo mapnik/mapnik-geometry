@@ -5,10 +5,10 @@ LDFLAGS := $(LDFLAGS)
 
 all: geometry_impl_test json_generator_test vertex_converters_test geometry_adapters
 
-geometry_adapters: geometry_adapters.cpp
+geometry_adapters: geometry_adapters.cpp geometry_adapters.hpp
 	$(CXX) -o geometry_adapters geometry_adapters.cpp -F/ -framework CoreFoundation -g `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS) -L../src
 
-geometry_impl_test: geometry_impl_test.cpp
+geometry_impl_test: geometry_impl_test.cpp geometry_impl.hpp
 	$(CXX) -o geometry_impl_test geometry_impl_test.cpp -F/ -framework CoreFoundation -g `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS) -L../src
 
 json_generator_test: json_generator_test.cpp
