@@ -28,49 +28,47 @@
 #include <mapnik/util/variant.hpp>
 #include <mapnik/geometry.hpp>
 #include <mapnik/geometry_container.hpp>
-#include <boost/timer/timer.hpp>
+#include <mapnik/timer.hpp>
 
 #include "geometry_impl.hpp"
 
 int main(int argc, char ** argv)
 {
-    std::cerr << "sizeof(mapnik::geometry_type)=" << sizeof(mapnik::geometry_type) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::geometry)=" << sizeof(mapnik::new_geometry::geometry) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::point)="<< sizeof(mapnik::new_geometry::point) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::line_string)="<< sizeof(mapnik::new_geometry::line_string) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::polygon)="<< sizeof(mapnik::new_geometry::polygon) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::polygon2)="<< sizeof(mapnik::new_geometry::polygon2) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::polygon_vertex_adapter)="<< sizeof(mapnik::new_geometry::polygon_vertex_adapter) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::polygon_vertex_adapter_2)="<< sizeof(mapnik::new_geometry::polygon_vertex_adapter_2) << std::endl;
-    std::cerr << "sizeof(mapnik::new_geometry::vertex_adapter)="<< sizeof(mapnik::new_geometry::vertex_adapter) << std::endl;
-
-    if (argc != 4)
+    if (argc != 5)
     {
-        std::cerr << "Usage:" << argv[0] << " <num-geom> <num-rings> <num-points>" << std::endl;
+        std::cerr << "sizeof(mapnik::geometry_type)=" << sizeof(mapnik::geometry_type) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::geometry)=" << sizeof(mapnik::new_geometry::geometry) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::vertex_sequence)="<< sizeof(mapnik::new_geometry::vertex_sequence) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::point)="<< sizeof(mapnik::new_geometry::point) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::line_string)="<< sizeof(mapnik::new_geometry::line_string) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::polygon)="<< sizeof(mapnik::new_geometry::polygon) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::polygon2)="<< sizeof(mapnik::new_geometry::polygon2) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::polygon_vertex_adapter)="<< sizeof(mapnik::new_geometry::polygon_vertex_adapter) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::polygon_vertex_adapter_2)="<< sizeof(mapnik::new_geometry::polygon_vertex_adapter_2) << std::endl;
+        std::cerr << "sizeof(mapnik::new_geometry::vertex_adapter)="<< sizeof(mapnik::new_geometry::vertex_adapter) << std::endl;
+        std::cerr << "\n";
+        std::cerr << "Usage:" << argv[0] << " <num-geom> <num-rings> <num-points> <method>" << std::endl;
         return 1;
     }
 
-    const int NUM_GEOM=std::stol(argv[1]);
-    const int NUM_RINGS=std::stol(argv[2]);
-    const int NUM_POINTS=std::stol(argv[3]);
+    const std::size_t NUM_GEOM = static_cast<std::size_t>(std::stol(argv[1]));
+    const std::size_t NUM_RINGS = static_cast<std::size_t>(std::stol(argv[2]));
+    const std::size_t NUM_POINTS = static_cast<std::size_t>( std::stol(argv[3]));
+    const int METHOD = std::stol(argv[4]);
 
-
-    for (int i=0; i < 3 ; ++i)
+    if (METHOD == 1)
     {
-
-#ifdef  MAPNIK_GEOMETRY_POLYGON
+        mapnik::geometry_container geom_cont;
+        geom_cont.reserve(NUM_GEOM);
         {
-            std::cerr << "mapnik::geometry type " << std::endl;
-            boost::timer::auto_cpu_timer t;
-            mapnik::geometry_container geom_cont;
-
-            for (int n = 0; n < NUM_GEOM; ++n)
+            mapnik::progress_timer __stats__(std::clog, "mapnik::geometry create");
+            for (std::size_t n = 0; n < NUM_GEOM; ++n)
             {
                 std::unique_ptr<mapnik::geometry_type> poly(
                     new mapnik::geometry_type(mapnik::geometry_type::types::Polygon));
-                for (int j =0 ; j < NUM_RINGS;++j)
+                for (std::size_t j =0 ; j < NUM_RINGS;++j)
                 {
-                    for (size_t i=0; i < NUM_POINTS;++i)
+                    for (std::size_t i=0; i < NUM_POINTS;++i)
                     {
                         double x = i;
                         double y = NUM_POINTS-i;
@@ -84,7 +82,9 @@ int main(int argc, char ** argv)
                 }
                 geom_cont.push_back(poly.release());
             }
-
+        }
+        {
+            mapnik::progress_timer __stats__(std::clog, "mapnik::geometry iterate");
             long count = 0;
             for (auto const& poly : geom_cont)
             {
@@ -99,19 +99,18 @@ int main(int argc, char ** argv)
             }
             std::cerr << "--------count = " << count << std::endl;
         }
-#endif
-
-#ifdef NEW_GEOMETRY_POLYGON
+    }
+    else if (METHOD == 2)
+    {
+        std::vector<mapnik::new_geometry::geometry> geom_cont;
+        geom_cont.reserve(NUM_GEOM);
         {
-            std::cerr << "==============  new geometry polygon" << std::endl;
-            boost::timer::auto_cpu_timer t;
-            std::vector<mapnik::new_geometry::geometry> geom_cont;
-
-            for (int n = 0; n < NUM_GEOM; ++n)
+            mapnik::progress_timer __stats__(std::clog, "mapnik::new_geometry create");
+            for (std::size_t n = 0; n < NUM_GEOM; ++n)
             {
                 mapnik::new_geometry::polygon poly;
 
-                for (int j =0 ; j < NUM_RINGS;++j)
+                for (std::size_t j =0 ; j < NUM_RINGS;++j)
                 {
                     mapnik::new_geometry::line_string ring;
                     ring.reserve(NUM_POINTS);
@@ -125,6 +124,9 @@ int main(int argc, char ** argv)
                 }
                 geom_cont.emplace_back(std::move(poly));
             }
+        }
+        {
+            mapnik::progress_timer __stats__(std::clog, "mapnik::new_geometry iterate");
             long count = 0;
             for (auto const& geom : geom_cont)
             {
@@ -138,21 +140,20 @@ int main(int argc, char ** argv)
                     ++count;
                 }
             }
-            std::cerr << "new geom count=" << count << std::endl;
+            std::cerr << "--------count = " << count << std::endl;
         }
-#endif
-
-#ifdef NEW_GEOMETRY_POLYGON_2
+    }
+    else
+    {
+        std::vector<mapnik::new_geometry::geometry> geom_cont;
+        geom_cont.reserve(NUM_GEOM);
         {
-            std::cerr << "==============  new geometry polygon2" << std::endl;
-            boost::timer::auto_cpu_timer t;
-            std::vector<mapnik::new_geometry::geometry> geom_cont;
-
-            for (int n = 0; n < NUM_GEOM; ++n)
+            mapnik::progress_timer __stats__(std::clog, "mapnik::new_geometry 2 create");
+            for (std::size_t n = 0; n < NUM_GEOM; ++n)
             {
                 mapnik::new_geometry::polygon2 poly;
 
-                for (int j =0 ; j < NUM_RINGS;++j)
+                for (std::size_t j =0 ; j < NUM_RINGS;++j)
                 {
                     mapnik::new_geometry::line_string ring;
                     ring.reserve(NUM_POINTS);
@@ -166,6 +167,9 @@ int main(int argc, char ** argv)
                 }
                 geom_cont.emplace_back(std::move(poly));
             }
+        }
+        {
+            mapnik::progress_timer __stats__(std::clog, "mapnik::new_geometry 2 iterate");
             long count = 0;
             for (auto const& geom : geom_cont)
             {
@@ -179,9 +183,8 @@ int main(int argc, char ** argv)
                     ++count;
                 }
             }
-            std::cerr << "new geom count=" << count << std::endl;
+            std::cerr << "--------count = " << count << std::endl;
         }
-#endif
     }
     return EXIT_SUCCESS;
 }
