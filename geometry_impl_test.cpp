@@ -173,7 +173,19 @@ int main(int argc, char ** argv)
             long count = 0;
             for (auto const& geom : geom_cont)
             {
+                // slow because it allocates a variant inside
                 mapnik::new_geometry::vertex_adapter v_adapter(geom);
+
+                /*
+                // oddly just as slow as `mapnik::new_geometry::vertex_adapter`
+                auto v_adapter = mapnik::new_geometry::vertex_adapter_factory::create(geom);
+                */
+
+                // NOTE: this is a cheat because it hardcodes the type. But is much faster
+                // I think because it skips the overhead of creating a `vertex_adapter_base`
+                // TODO: figure out how to have generic iterator without internal variant alloc
+                //auto const& geom_base = mapnik::util::get<mapnik::new_geometry::polygon2>(geom);
+                //mapnik::new_geometry::polygon_vertex_adapter_2 v_adapter(geom_base);
                 v_adapter.rewind(0);
                 for  (;;)
                 {
