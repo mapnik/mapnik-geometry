@@ -3,16 +3,19 @@ COMMON_FLAGS = -Wall -Wsign-compare -Wsign-conversion -Wshadow -Wunused-paramete
 CXXFLAGS := $(CXXFLAGS)
 LDFLAGS := $(LDFLAGS)
 
-all: geometry_impl_test json_generator_test vertex_converters_test
+all: geometry_impl_test json_generator_test vertex_converters_test geometry_adapters
 
-geometry_impl_test:
-	$(CXX) -o geometry_impl_test geometry_impl_test.cpp `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS) -L../src -lboost_timer -lboost_chrono
+geometry_adapters: geometry_adapters.cpp
+	$(CXX) -o geometry_adapters geometry_adapters.cpp -F/ -framework CoreFoundation -g `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS) -L../src
 
-json_generator_test:
-	$(CXX) -o json_generator_test json_generator_test.cpp `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS)-L../src -lboost_timer -lboost_chrono
+geometry_impl_test: geometry_impl_test.cpp
+	$(CXX) -o geometry_impl_test geometry_impl_test.cpp -F/ -framework CoreFoundation -g `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS) -L../src
 
-vertex_converters_test:
-	$(CXX) -o vertex_converters_test vertex_converters_test.cpp `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS) -L../src -lboost_timer -lboost_chrono
+json_generator_test: json_generator_test.cpp
+	$(CXX) -o json_generator_test json_generator_test.cpp -F/ -framework CoreFoundation -g `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS)-L../src
+
+vertex_converters_test: vertex_converters_test.cpp
+	$(CXX) -o vertex_converters_test vertex_converters_test.cpp -F/ -framework CoreFoundation -g `mapnik-config --all-flags` $(COMMON_FLAGS) $(CXXFLAGS) $(LDFLAGS) -L../src
 
 test:
 	./json_generator_test
@@ -23,5 +26,6 @@ clean:
 	rm -f ./json_generator_test
 	rm -f ./geometry_impl_test
 	rm -f ./vertex_converters_test
+	rm -f ./geometry_adapters
 
 .PHONY: test clean
