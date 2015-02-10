@@ -88,11 +88,13 @@ int main(int argc, char ** argv)
             long count = 0;
             for (auto const& poly : geom_cont)
             {
-                poly.rewind(0);
+                mapnik::vertex_adapter va(poly);
+                va.rewind(0);
+
                 for (;;)
                 {
                     double x,y;
-                    unsigned cmd = poly.vertex(&x,&y);
+                    unsigned cmd = va.vertex(&x,&y);
                     if (cmd == mapnik::SEG_END) break;
                     ++count;
                 }

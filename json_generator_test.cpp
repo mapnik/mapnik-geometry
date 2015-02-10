@@ -95,6 +95,40 @@ bool to_geojson_2(std::string & json, GeometryContainer const& geom_cont)
     return boost::spirit::karma::generate(sink, g, geom_cont);
 }
 
+
+namespace json { namespace detail {
+
+// adapt mapnik::vertex_adapter get_first
+template <>
+struct get_first<mapnik::vertex_adapter>
+{
+    using geometry_type =  mapnik::vertex_adapter;
+    using result_type = typename geometry_type::value_type;
+    result_type operator() (geometry_type const& geom) const
+    {
+        result_type coord;
+        geom.rewind(0);
+        std::get<0>(coord) = geom.vertex(&std::get<1>(coord),&std::get<2>(coord));
+        return coord;
+    }
+};
+
+// adapt new geometry get_first
+template <>
+struct get_first<mapnik::new_geometry::vertex_adapter>
+{
+    using geometry_type =  mapnik::new_geometry::vertex_adapter;
+    using result_type = typename geometry_type::value_type;
+    result_type operator() (geometry_type const& geom) const
+    {
+        result_type coord;
+        geom.rewind(0);
+        std::get<0>(coord) = geom.vertex(&std::get<1>(coord),&std::get<2>(coord));
+        return coord;
+    }
+};
+} // namespace detail
+} // namespace json
 } // namespace mapnik
 
 
@@ -121,6 +155,7 @@ int main(int, char **)
                         poly->line_to(x,y);
 
                 }
+                poly->line_to(0,10);// FIXME
                 poly->close_path();
             }
             geom_cont.push_back(poly.release());
@@ -128,7 +163,8 @@ int main(int, char **)
         for (auto const& geom : geom_cont)
         {
             std::string json;
-            mapnik::to_geojson_1(json, geom);
+            mapnik::vertex_adapter va(geom);
+            mapnik::to_geojson_1(json, va);
             std::cerr << json << std::endl;
         }
     }
@@ -152,6 +188,8 @@ int main(int, char **)
                     double y = 10 - i;
                     ring.add_coord(x, y);
                 }
+                // close ring
+                ring.add_coord(0, 10);
                 poly.add_ring(std::move(ring));
             }
             geom_cont.push_back(mapnik::new_geometry::geometry(std::move(poly)));
