@@ -77,6 +77,7 @@ namespace geometry { namespace traits {
 //    using type = ring_tag;
 //};
 
+// polygon 2
 template<> struct tag<mapnik::new_geometry::polygon2>
 {
     using type = polygon_tag;
@@ -138,6 +139,73 @@ struct interior_rings<mapnik::new_geometry::polygon2>
        return boost::make_iterator_range(p.rings.begin() + 1, p.rings.end());
     }
 };
+
+
+// mapnik::new_geometry::polygon3
+
+template<> struct tag<mapnik::new_geometry::polygon3>
+{
+    using type = polygon_tag;
+};
+
+// ring
+template<> struct ring_const_type<mapnik::new_geometry::polygon3>
+{
+    using type =  mapnik::new_geometry::line_string::cont_type const&;
+};
+
+template<> struct ring_mutable_type<mapnik::new_geometry::polygon3>
+{
+    using type = mapnik::new_geometry::line_string::cont_type&;
+};
+
+// interior
+template<> struct interior_const_type<mapnik::new_geometry::polygon3>
+{
+    using rings_type = std::vector<mapnik::new_geometry::line_string::cont_type>;
+    using type = boost::iterator_range<rings_type::const_iterator> const;
+};
+
+template<> struct interior_mutable_type<mapnik::new_geometry::polygon3>
+{
+    using rings_type = std::vector<mapnik::new_geometry::line_string::cont_type>;
+    using type = boost::iterator_range<rings_type::iterator>;
+};
+
+// exterior
+template<>
+struct exterior_ring<mapnik::new_geometry::polygon3>
+{
+    static mapnik::new_geometry::line_string::cont_type& get(mapnik::new_geometry::polygon3 & p)
+    {
+        return p.exterior_ring.data;
+    }
+
+    static mapnik::new_geometry::line_string::cont_type const& get(mapnik::new_geometry::polygon3 const& p)
+    {
+        return p.exterior_ring.data;
+    }
+};
+
+template<>
+struct interior_rings<mapnik::new_geometry::polygon3>
+{
+    using ring_iterator = std::vector<mapnik::new_geometry::line_string::cont_type>::iterator;
+    using const_ring_iterator = std::vector<mapnik::new_geometry::line_string::cont_type>::const_iterator;
+    using holes_type = boost::iterator_range<ring_iterator>;
+    using const_holes_type = boost::iterator_range<const_ring_iterator>;
+    static holes_type get(mapnik::new_geometry::polygon3 & p)
+    {
+        return boost::make_iterator_range(p.interior_rings.begin(), p.interior_rings.end());
+    }
+
+    static const_holes_type get(mapnik::new_geometry::polygon3 const& p)
+    {
+       return boost::make_iterator_range(p.interior_rings.begin(), p.interior_rings.end());
+    }
+};
+
+
 
 }}}
 

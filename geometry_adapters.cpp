@@ -56,7 +56,7 @@ int main(int, char **)
 
     std::cerr << "Polygon" << std::endl;
 
-    mapnik::new_geometry::polygon2 poly;
+    mapnik::new_geometry::polygon3 poly;
     {
         mapnik::new_geometry::line_string external_ring;
         external_ring.add_coord(0,0);
@@ -64,7 +64,7 @@ int main(int, char **)
         external_ring.add_coord(100,100);
         external_ring.add_coord(0,100);
         external_ring.add_coord(0,0);
-        poly.add_ring(std::move(external_ring));
+        poly.set_exterior_ring(std::move(external_ring));
         //
         mapnik::new_geometry::line_string hole;
         hole.add_coord(50,50);
@@ -73,7 +73,7 @@ int main(int, char **)
         hole.add_coord(50,75);
         //hole.add_coord(75,50); // !!
         hole.add_coord(50,50);
-        poly.add_ring(std::move(hole));
+        poly.add_hole(std::move(hole));
     }
 
     std::cerr << "Num points: " << boost::geometry::num_points(poly) << std::endl;
