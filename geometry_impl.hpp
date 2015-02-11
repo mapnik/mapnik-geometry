@@ -70,6 +70,15 @@ struct point
     double y;
 };
 
+struct bounding_box
+{
+    bounding_box(double lox, double loy, double hix, double hiy)
+        : p0(lox,loy),
+          p1(hix,hiy) {}
+    point p0;
+    point p1;
+};
+
 struct vertex_sequence
 {
     typedef std::vector<point> cont_type;
@@ -84,6 +93,7 @@ struct line_string : vertex_sequence
 {
     using const_iterator_type = cont_type::const_iterator;
     using iterator_type = cont_type::iterator;
+    using value_type = cont_type::value_type;
     iterator_type begin() { return data.begin(); }
     iterator_type end() { return data.end(); }
     const_iterator_type begin() const { return data.begin(); }
@@ -91,8 +101,12 @@ struct line_string : vertex_sequence
     line_string() = default;
     line_string (line_string && other) = default ;
     line_string& operator=(line_string &&) = default;
-    line_string (line_string const& ) = delete;
+    line_string (line_string const& ) = default;
+    line_string& operator=(line_string const&) = default;
     inline std::size_t num_points() const { return data.size(); }
+    inline void clear() { data.clear();}
+    inline void resize(std::size_t new_size) { data.resize(new_size);}
+    inline void push_back(value_type const& val) { data.push_back(val);}
     void add_coord(double x, double y)
     {
         data.emplace_back(x,y);
@@ -118,7 +132,7 @@ struct polygon2
 struct polygon3
 {
     line_string exterior_ring;
-    std::vector<line_string::cont_type> interior_rings;
+    std::vector<line_string> interior_rings;
 
     inline void set_exterior_ring(line_string && ring)
     {
@@ -127,7 +141,7 @@ struct polygon3
 
     inline void add_hole(line_string && ring)
     {
-        interior_rings.emplace_back(std::move(ring.data));
+        interior_rings.emplace_back(std::move(ring));
     }
 
     inline std::size_t num_rings() const
@@ -376,7 +390,7 @@ struct polygon_vertex_adapter_3
         if (current_index_ < end_index_)
         {
             point const& coord = (rings_itr_ == 0) ?
-                poly_.exterior_ring.data[current_index_++] : poly_.interior_rings[rings_itr_- 1][current_index_++];
+                poly_.exterior_ring.data[current_index_++] : poly_.interior_rings[rings_itr_- 1].data[current_index_++];
             *x = coord.x;
             *y = coord.y;
             if (start_loop_)
@@ -389,8 +403,8 @@ struct polygon_vertex_adapter_3
         else if (++rings_itr_ != rings_end_)
         {
             current_index_ = 0;
-            end_index_ = poly_.interior_rings[rings_itr_ - 1].size();
-            point const& coord = poly_.interior_rings[rings_itr_ - 1][current_index_++];
+            end_index_ = poly_.interior_rings[rings_itr_ - 1].data.size();
+            point const& coord = poly_.interior_rings[rings_itr_ - 1].data[current_index_++];
             *x = coord.x;
             *y = coord.y;
             return mapnik::SEG_MOVETO;

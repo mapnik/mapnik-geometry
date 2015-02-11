@@ -44,7 +44,7 @@ int main(int, char **)
 {
 
     std::cerr << "Boost.Geometry adapters" << std::endl;
-
+#if 0
     std::cerr << "LineString" << std::endl;
     mapnik::new_geometry::line_string line;
     line.add_coord(100,100);
@@ -53,7 +53,7 @@ int main(int, char **)
     std::cerr << "Num points: " << boost::geometry::num_points(line) << std::endl;
     std::cerr << "Length: " << boost::geometry::length(line) << std::endl;
     std::cerr << "WKT: " << boost::geometry::wkt(line) << std::endl;
-
+#endif
     std::cerr << "Polygon" << std::endl;
 
     mapnik::new_geometry::polygon3 poly;
@@ -98,6 +98,24 @@ int main(int, char **)
     boost::geometry::envelope(poly, box);
     std::cerr << "========== envelope:" << boost::geometry::dsv(box) << std::endl;
 
+    std::cerr << "========== clipping" << std::endl;
+    using polygon_list = std::deque<mapnik::new_geometry::polygon3>;
+    mapnik::new_geometry::bounding_box clip_box(100,100,175,175);
+    mapnik::new_geometry::polygon3 input_poly;
+    boost::geometry::read_wkt("POLYGON((50 250, 400 250, 150 50, 50 250))", input_poly);
+    polygon_list clipped_polygons;
+    try
+    {
+        boost::geometry::intersection(clip_box, input_poly, clipped_polygons);
+        for (auto const& p : clipped_polygons)
+        {
+            std::cerr << boost::geometry::wkt(p) << std::endl;
+        }
+    }
+    catch (boost::geometry::exception const& ex)
+    {
+        std::cerr << ex.what() << std::endl;
+    }
 
     return EXIT_SUCCESS;
 }
