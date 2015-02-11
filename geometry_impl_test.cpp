@@ -37,6 +37,7 @@ int main(int argc, char ** argv)
     if (argc != 5)
     {
         std::cerr << "sizeof(mapnik::geometry_type)=" << sizeof(mapnik::geometry_type) << std::endl;
+        std::cerr << "sizeof(mapnik::vertex_adapter)=" << sizeof(mapnik::vertex_adapter) << std::endl;
         std::cerr << "sizeof(mapnik::new_geometry::geometry)=" << sizeof(mapnik::new_geometry::geometry) << std::endl;
         std::cerr << "sizeof(mapnik::new_geometry::vertex_sequence)="<< sizeof(mapnik::new_geometry::vertex_sequence) << std::endl;
         std::cerr << "sizeof(mapnik::new_geometry::point)="<< sizeof(mapnik::new_geometry::point) << std::endl;
@@ -90,7 +91,6 @@ int main(int argc, char ** argv)
             {
                 mapnik::vertex_adapter va(poly);
                 va.rewind(0);
-
                 for (;;)
                 {
                     double x,y;
