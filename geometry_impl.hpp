@@ -90,6 +90,9 @@ struct line_string : vertex_sequence
     const_iterator_type end() const { return data.end(); }
     line_string() = default;
     line_string (line_string && other) = default ;
+    line_string& operator=(line_string &&) = default;
+    line_string (line_string const& ) = delete;
+    inline std::size_t num_points() const { return data.size(); }
     void add_coord(double x, double y)
     {
         data.emplace_back(x,y);
@@ -98,6 +101,7 @@ struct line_string : vertex_sequence
 
 struct polygon2
 {
+    //polygon2(polygon const&) = delete;
     std::vector<line_string::cont_type> rings;
 
     inline void add_ring(line_string && ring)
@@ -111,6 +115,28 @@ struct polygon2
     }
 };
 
+struct polygon3
+{
+    line_string exterior_ring;
+    std::vector<line_string::cont_type> interior_rings;
+
+    inline void set_exterior_ring(line_string && ring)
+    {
+        exterior_ring = std::move(ring);
+    }
+
+    inline void add_hole(line_string && ring)
+    {
+        interior_rings.emplace_back(std::move(ring.data));
+    }
+
+    inline std::size_t num_rings() const
+    {
+        return 1 + interior_rings.size();
+    }
+};
+
+
 struct polygon : vertex_sequence
 {
     typedef line_string::cont_type::const_iterator iterator_type;
@@ -122,11 +148,12 @@ struct polygon : vertex_sequence
     polygon (polygon && other) noexcept = default;
     inline void add_ring(line_string && ring)
     {
-        std::size_t start = data.size();
         std::size_t count = ring.data.size();
         if (count != 0)
         {
-            std::move(ring.data.begin(),ring.data.end(), std::back_inserter(data));
+            std::size_t start = data.size();
+            data.resize(start + ring.data.size());
+            std::move_backward(ring.begin(),ring.end(), data.end());
             rings.emplace_back(start,count);
         }
     }
@@ -150,7 +177,7 @@ struct polygon : vertex_sequence
     }
 };
 
-typedef mapnik::util::variant< point,line_string, polygon2, polygon> geometry;
+typedef mapnik::util::variant< point,line_string, polygon, polygon2, polygon3> geometry;
 
 struct point_vertex_adapter
 {
@@ -323,11 +350,68 @@ private:
     mutable bool start_loop_;
 };
 
+struct polygon_vertex_adapter_3
+{
+    polygon_vertex_adapter_3(polygon3 const& poly)
+        : poly_(poly),
+          rings_itr_(0),
+          rings_end_(poly_.interior_rings.size() + 1),
+          current_index_(0),
+          end_index_((rings_itr_ < rings_end_) ? poly_.exterior_ring.num_points() : 0),
+          start_loop_(true) {}
+
+    void rewind(unsigned) const
+    {
+        rings_itr_ = 0;
+        rings_end_ = poly_.interior_rings.size() + 1;
+        current_index_ = 0;
+        end_index_ = (rings_itr_ < rings_end_) ? poly_.exterior_ring.num_points() : 0;
+        start_loop_ = true;
+    }
+
+    unsigned vertex(double*x, double*y) const
+    {
+        if (rings_itr_ == rings_end_)
+            return mapnik::SEG_END;
+        if (current_index_ < end_index_)
+        {
+            point const& coord = (rings_itr_ == 0) ?
+                poly_.exterior_ring.data[current_index_++] : poly_.interior_rings[rings_itr_- 1][current_index_++];
+            *x = coord.x;
+            *y = coord.y;
+            if (start_loop_)
+            {
+                start_loop_= false;
+                return mapnik::SEG_MOVETO;
+            }
+            return mapnik::SEG_LINETO;
+        }
+        else if (++rings_itr_ != rings_end_)
+        {
+            current_index_ = 0;
+            end_index_ = poly_.interior_rings[rings_itr_ - 1].size();
+            point const& coord = poly_.interior_rings[rings_itr_ - 1][current_index_++];
+            *x = coord.x;
+            *y = coord.y;
+            return mapnik::SEG_MOVETO;
+        }
+        return mapnik::SEG_END;
+    }
+private:
+    polygon3 const& poly_;
+    mutable std::size_t rings_itr_;
+    mutable std::size_t rings_end_;
+    mutable std::size_t current_index_;
+    mutable std::size_t end_index_;
+    mutable bool start_loop_;
+};
+
 
 using vertex_adapter_base =  mapnik::util::variant<point_vertex_adapter,
                                                    line_string_vertex_adapter,
                                                    polygon_vertex_adapter,
-                                                   polygon_vertex_adapter_2>;
+                                                   polygon_vertex_adapter_2,
+                                                   polygon_vertex_adapter_3>;
 
 struct vertex_adapter
 {
@@ -355,6 +439,10 @@ struct vertex_adapter
         vertex_adapter_base operator() (polygon2 const& poly) const
         {
             return polygon_vertex_adapter_2(poly);
+        }
+        vertex_adapter_base operator() (polygon3 const& poly) const
+        {
+            return polygon_vertex_adapter_3(poly);
         }
     };
 
@@ -397,6 +485,10 @@ struct vertex_adapter
             return Polygon;
         }
         geometry_types operator() (polygon_vertex_adapter_2 const&) const
+        {
+            return Polygon;
+        }
+        geometry_types operator() (polygon_vertex_adapter_3 const&) const
         {
             return Polygon;
         }
@@ -449,6 +541,10 @@ struct vertex_adapter_factory
         vertex_adapter operator() (polygon2 const& poly) const
         {
             return polygon_vertex_adapter_2(poly);
+        }
+        vertex_adapter operator() (polygon3 const& poly) const
+        {
+            return polygon_vertex_adapter_3(poly);
         }
     };
 
