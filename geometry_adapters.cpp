@@ -77,7 +77,6 @@ int main(int, char **)
     }
 
     std::cerr << "Num points: " << boost::geometry::num_points(poly) << std::endl;
-
     std::cerr << "Area (before): " << boost::geometry::area(poly) << std::endl;
     std::cerr << "WKT (before): " << boost::geometry::wkt(poly) << std::endl;
     std::cerr << "Is valid? :" << std::boolalpha << boost::geometry::is_valid(poly) << std::endl;
@@ -100,22 +99,40 @@ int main(int, char **)
 
     std::cerr << "========== clipping" << std::endl;
     using polygon_list = std::deque<mapnik::new_geometry::polygon3>;
-    mapnik::new_geometry::bounding_box clip_box(100,100,175,175);
-    mapnik::new_geometry::polygon3 input_poly;
-    boost::geometry::read_wkt("POLYGON((50 250, 400 250, 150 50, 50 250))", input_poly);
-    polygon_list clipped_polygons;
-    try
-    {
-        boost::geometry::intersection(clip_box, input_poly, clipped_polygons);
-        for (auto const& p : clipped_polygons)
-        {
-            std::cerr << boost::geometry::wkt(p) << std::endl;
-        }
-    }
-    catch (boost::geometry::exception const& ex)
-    {
-        std::cerr << ex.what() << std::endl;
-    }
 
+//POLYGON ((174.59563876651984 378.20612334801757, 174.59563876651984 456.0192511013215, 627.326563876652 456.0192511013215, 627.326563876652 378.20612334801757, 174.59563876651984 378.20612334801757))
+    mapnik::new_geometry::bounding_box clip_box(174.59563876651984,378.20612334801757,627.326563876652,456.0192511013215);
+    mapnik::new_geometry::polygon3 input_poly;
+    boost::geometry::read_wkt("POLYGON ((155 203, 233 454, 315 340, 421 446, 463 324, 559 466, 665 253, 528 178, 394 229, 329 138, 212 134, 183 228, 200 264, 155 203),(313 190, 440 256, 470 248, 510 305, 533 237, 613 263, 553 397, 455 262, 405 378, 343 287, 249 334, 229 191, 313 190))", input_poly);
+
+    {
+        boost::timer::auto_cpu_timer t;
+        std::size_t count = 0;
+        for (std::size_t i = 0; i < 10000; ++i)
+        {
+            polygon_list clipped_polygons;
+            try
+            {
+                boost::geometry::intersection(clip_box, input_poly, clipped_polygons);
+                for (auto const& p : clipped_polygons)
+                {
+                    if (i == 0)
+                    {
+                        std::cerr << boost::geometry::wkt(p) << std::endl;
+                    }
+                    count += p.exterior_ring.num_points();
+                    for (auto const& ring :  p.interior_rings)
+                    {
+                        count += ring.num_points();
+                    }
+                }
+            }
+            catch (boost::geometry::exception const& ex)
+            {
+                std::cerr << ex.what() << std::endl;
+            }
+        }
+        std::cerr << "count=" << count << std::endl;
+    }
     return EXIT_SUCCESS;
 }
