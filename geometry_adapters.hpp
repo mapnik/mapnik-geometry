@@ -184,35 +184,35 @@ template<> struct tag<mapnik::new_geometry::polygon3>
 // ring
 template<> struct ring_const_type<mapnik::new_geometry::polygon3>
 {
-    using type =  mapnik::new_geometry::line_string const&;
+    using type =  mapnik::new_geometry::linear_ring const&;
 };
 
 template<> struct ring_mutable_type<mapnik::new_geometry::polygon3>
 {
-    using type = mapnik::new_geometry::line_string&;
+    using type = mapnik::new_geometry::linear_ring&;
 };
 
 // interior
 template<> struct interior_const_type<mapnik::new_geometry::polygon3>
 {
-    using type = std::vector<mapnik::new_geometry::line_string> const&;
+    using type = std::vector<mapnik::new_geometry::linear_ring> const&;
 };
 
 template<> struct interior_mutable_type<mapnik::new_geometry::polygon3>
 {
-    using type = std::vector<mapnik::new_geometry::line_string>&;
+    using type = std::vector<mapnik::new_geometry::linear_ring>&;
 };
 
 // exterior
 template<>
 struct exterior_ring<mapnik::new_geometry::polygon3>
 {
-    static mapnik::new_geometry::line_string& get(mapnik::new_geometry::polygon3 & p)
+    static mapnik::new_geometry::linear_ring& get(mapnik::new_geometry::polygon3 & p)
     {
         return p.exterior_ring;
     }
 
-    static mapnik::new_geometry::line_string const& get(mapnik::new_geometry::polygon3 const& p)
+    static mapnik::new_geometry::linear_ring const& get(mapnik::new_geometry::polygon3 const& p)
     {
         return p.exterior_ring;
     }
@@ -221,22 +221,17 @@ struct exterior_ring<mapnik::new_geometry::polygon3>
 template<>
 struct interior_rings<mapnik::new_geometry::polygon3>
 {
-    //using ring_iterator = std::vector<mapnik::new_geometry::line_string::cont_type>::iterator;
-    //using const_ring_iterator = std::vector<mapnik::new_geometry::line_string::cont_type>::const_iterator;
-    //using holes_type = boost::iterator_range<ring_iterator>;
-    //using const_holes_type = boost::iterator_range<const_ring_iterator>;
-    using holes_type = std::vector<mapnik::new_geometry::line_string>;
+    using holes_type = std::vector<mapnik::new_geometry::linear_ring>;
     static holes_type&  get(mapnik::new_geometry::polygon3 & p)
     {
-        return p.interior_rings;//boost::make_iterator_range(p.interior_rings.begin(), p.interior_rings.end());
+        return p.interior_rings;
     }
 
     static holes_type const& get(mapnik::new_geometry::polygon3 const& p)
     {
-        return p.interior_rings;//boost::make_iterator_range(p.interior_rings.begin(), p.interior_rings.end());
+        return p.interior_rings;
     }
 };
-
 
 
 }}}

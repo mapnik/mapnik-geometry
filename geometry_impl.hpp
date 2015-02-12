@@ -129,17 +129,19 @@ struct polygon2
     }
 };
 
+using linear_ring = std::vector<point>;
+
 struct polygon3
 {
-    line_string exterior_ring;
-    std::vector<line_string> interior_rings;
+    linear_ring exterior_ring;
+    std::vector<linear_ring> interior_rings;
 
-    inline void set_exterior_ring(line_string && ring)
+    inline void set_exterior_ring(linear_ring && ring)
     {
         exterior_ring = std::move(ring);
     }
 
-    inline void add_hole(line_string && ring)
+    inline void add_hole(linear_ring && ring)
     {
         interior_rings.emplace_back(std::move(ring));
     }
@@ -371,7 +373,7 @@ struct polygon_vertex_adapter_3
           rings_itr_(0),
           rings_end_(poly_.interior_rings.size() + 1),
           current_index_(0),
-          end_index_((rings_itr_ < rings_end_) ? poly_.exterior_ring.num_points() : 0),
+          end_index_((rings_itr_ < rings_end_) ? poly_.exterior_ring.size() : 0),
           start_loop_(true) {}
 
     void rewind(unsigned) const
@@ -379,7 +381,7 @@ struct polygon_vertex_adapter_3
         rings_itr_ = 0;
         rings_end_ = poly_.interior_rings.size() + 1;
         current_index_ = 0;
-        end_index_ = (rings_itr_ < rings_end_) ? poly_.exterior_ring.num_points() : 0;
+        end_index_ = (rings_itr_ < rings_end_) ? poly_.exterior_ring.size() : 0;
         start_loop_ = true;
     }
 
@@ -390,7 +392,7 @@ struct polygon_vertex_adapter_3
         if (current_index_ < end_index_)
         {
             point const& coord = (rings_itr_ == 0) ?
-                poly_.exterior_ring.data[current_index_++] : poly_.interior_rings[rings_itr_- 1].data[current_index_++];
+                poly_.exterior_ring[current_index_++] : poly_.interior_rings[rings_itr_- 1][current_index_++];
             *x = coord.x;
             *y = coord.y;
             if (start_loop_)
@@ -403,8 +405,8 @@ struct polygon_vertex_adapter_3
         else if (++rings_itr_ != rings_end_)
         {
             current_index_ = 0;
-            end_index_ = poly_.interior_rings[rings_itr_ - 1].data.size();
-            point const& coord = poly_.interior_rings[rings_itr_ - 1].data[current_index_++];
+            end_index_ = poly_.interior_rings[rings_itr_ - 1].size();
+            point const& coord = poly_.interior_rings[rings_itr_ - 1][current_index_++];
             *x = coord.x;
             *y = coord.y;
             return mapnik::SEG_MOVETO;

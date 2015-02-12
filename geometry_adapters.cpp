@@ -44,7 +44,7 @@ int main(int, char **)
 {
 
     std::cerr << "Boost.Geometry adapters" << std::endl;
-#if 0
+
     std::cerr << "LineString" << std::endl;
     mapnik::new_geometry::line_string line;
     line.add_coord(100,100);
@@ -53,26 +53,25 @@ int main(int, char **)
     std::cerr << "Num points: " << boost::geometry::num_points(line) << std::endl;
     std::cerr << "Length: " << boost::geometry::length(line) << std::endl;
     std::cerr << "WKT: " << boost::geometry::wkt(line) << std::endl;
-#endif
-    std::cerr << "Polygon" << std::endl;
 
+    std::cerr << "Polygon" << std::endl;
     mapnik::new_geometry::polygon3 poly;
     {
-        mapnik::new_geometry::line_string external_ring;
-        external_ring.add_coord(0,0);
-        external_ring.add_coord(100,0);
-        external_ring.add_coord(100,100);
-        external_ring.add_coord(0,100);
-        external_ring.add_coord(0,0);
+        mapnik::new_geometry::linear_ring external_ring;
+        external_ring.emplace_back(0,0);
+        external_ring.emplace_back(100,0);
+        external_ring.emplace_back(100,100);
+        external_ring.emplace_back(0,100);
+        external_ring.emplace_back(0,0);
         poly.set_exterior_ring(std::move(external_ring));
         //
-        mapnik::new_geometry::line_string hole;
-        hole.add_coord(50,50);
-        hole.add_coord(75,50);
-        hole.add_coord(75,75);
-        hole.add_coord(50,75);
-        //hole.add_coord(75,50); // !!
-        hole.add_coord(50,50);
+        mapnik::new_geometry::linear_ring hole;
+        hole.emplace_back(50,50);
+        hole.emplace_back(75,50);
+        hole.emplace_back(75,75);
+        hole.emplace_back(50,75);
+        //hole.emplace_back(75,50); // !!
+        hole.emplace_back(50,50);
         poly.add_hole(std::move(hole));
     }
 
@@ -120,10 +119,10 @@ int main(int, char **)
                     {
                         std::cerr << boost::geometry::wkt(p) << std::endl;
                     }
-                    count += p.exterior_ring.num_points();
+                    count += p.exterior_ring.size();
                     for (auto const& ring :  p.interior_rings)
                     {
-                        count += ring.num_points();
+                        count += ring.size();
                     }
                 }
             }
