@@ -146,13 +146,14 @@ int main(int argc, char ** argv)
     read_wkt(wkt_filename, geometries , bbox);
     boost::timer::auto_cpu_timer t;
 
+    bool valid_output = true;
     for (std::size_t i = 0; i < num_iterations ; ++i)
     {
         if (i == 0)
         {
             std::cerr << "NUM GEOMETRIES = " << geometries.size() << std::endl;
         }
-
+        std::size_t output_size = 0;
         for (auto geom : geometries)
         {
 
@@ -164,24 +165,20 @@ int main(int argc, char ** argv)
 
             {
 
-                std::size_t count = 0;
+                //std::size_t count = 0;
                 polygon_list clipped_polygons;
                 try
                 {
                     intersection<mapnik::new_geometry::bounding_box, polygon_list> op(clip_box, clipped_polygons);
                     op.apply(geom);
+                    output_size += clipped_polygons.size();
                     for (auto const& p : clipped_polygons)
                     {
                         if (i == 0)
                         {
-                            //std::cerr << "Is valid? :" << std::boolalpha << boost::geometry::is_valid(p) << std::endl;
+                            valid_output = boost::geometry::is_valid(p);
                             std::cout << boost::geometry::wkt(p) << std::endl;
                         }
-                        //count += p.exterior_ring.size();
-                        //for (auto const& ring :  p.interior_rings)
-                        //{
-                        //    count += ring.size();
-                        //}
                     }
                 }
                 catch (boost::geometry::exception const& ex)
@@ -189,8 +186,9 @@ int main(int argc, char ** argv)
                     std::cerr << ex.what() << std::endl;
                 }
             }
-            //std::cerr << "count=" << count << std::endl;
         }
+        std::cerr << "OUPUT SIZE=" << output_size << std::endl;
     }
+    std::cerr << "VALID OUTPUT : " << std::boolalpha << valid_output << std::endl;
     return EXIT_SUCCESS;
 }
