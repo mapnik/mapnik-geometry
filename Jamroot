@@ -72,3 +72,18 @@ exe geometry_adapters
     <include>$(ICU_DIR)/include
     <define>BIGINT
     ;
+
+exe clipping-test
+    :
+    clipping_test.cpp
+    .//icuuc
+    .//system
+    .//timer
+    .//chrono
+    .//mapnik
+    :
+    <include>$(BOOST_DIR)/include
+    <include>$(MAPNIK_DIR)/include
+    <include>$(ICU_DIR)/include
+    <define>BIGINT
+    ;
