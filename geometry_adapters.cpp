@@ -97,17 +97,21 @@ int main(int, char **)
     std::cerr << "========== envelope:" << boost::geometry::dsv(box) << std::endl;
 
     std::cerr << "========== clipping" << std::endl;
-    using polygon_list = std::deque<mapnik::new_geometry::polygon3>;
+    using polygon_list = std::vector<mapnik::new_geometry::polygon3>;
 
 //POLYGON ((174.59563876651984 378.20612334801757, 174.59563876651984 456.0192511013215, 627.326563876652 456.0192511013215, 627.326563876652 378.20612334801757, 174.59563876651984 378.20612334801757))
     mapnik::new_geometry::bounding_box clip_box(174.59563876651984,378.20612334801757,627.326563876652,456.0192511013215);
     mapnik::new_geometry::polygon3 input_poly;
     boost::geometry::read_wkt("POLYGON ((155 203, 233 454, 315 340, 421 446, 463 324, 559 466, 665 253, 528 178, 394 229, 329 138, 212 134, 183 228, 200 264, 155 203),(313 190, 440 256, 470 248, 510 305, 533 237, 613 263, 553 397, 455 262, 405 378, 343 287, 249 334, 229 191, 313 190))", input_poly);
 
+    std::cerr << "Area: " << boost::geometry::area(input_poly) << std::endl;
+    std::cerr << "WKT: " << boost::geometry::wkt(input_poly) << std::endl;
+    std::cerr << "Is valid? :" << std::boolalpha << boost::geometry::is_valid(input_poly) << std::endl;
+    std::cerr << "Is simple? :" << std::boolalpha << boost::geometry::is_simple(input_poly) << std::endl;
     {
         boost::timer::auto_cpu_timer t;
         std::size_t count = 0;
-        for (std::size_t i = 0; i < 10000; ++i)
+        for (std::size_t i = 0; i < 10000 ; ++i)
         {
             polygon_list clipped_polygons;
             try
