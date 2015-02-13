@@ -72,6 +72,7 @@ struct point
 
 struct bounding_box
 {
+    bounding_box() {} // no-init
     bounding_box(double lox, double loy, double hix, double hiy)
         : p0(lox,loy),
           p1(hix,hiy) {}
@@ -159,7 +160,6 @@ struct polygon : vertex_sequence
     std::vector<std::tuple<std::uint32_t, std::uint32_t> > rings;
     // ring's element count. first ring exterior, subsequent rings are interior
     // rings[0] + ..+ rings[rings.size()-1] == data.size()
-
     polygon() = default;
     polygon (polygon && other) noexcept = default;
     inline void add_ring(line_string && ring)
