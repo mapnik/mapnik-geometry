@@ -181,6 +181,13 @@ template<> struct tag<mapnik::new_geometry::polygon3>
     using type = polygon_tag;
 };
 
+// multi_polygon
+
+template<> struct tag<mapnik::new_geometry::multi_polygon>
+{
+    using type = multi_polygon_tag;
+};
+
 // ring
 template<> struct ring_const_type<mapnik::new_geometry::polygon3>
 {

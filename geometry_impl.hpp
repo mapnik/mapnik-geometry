@@ -153,6 +153,7 @@ struct polygon3
     }
 };
 
+using multi_polygon = std::vector<polygon3>;
 
 struct polygon : vertex_sequence
 {
