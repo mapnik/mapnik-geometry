@@ -257,13 +257,13 @@ int main(int argc, char ** argv)
 
                 for (std::size_t j =0 ; j < NUM_RINGS;++j)
                 {
-                    mapnik::new_geometry::line_string ring;
+                    mapnik::new_geometry::linear_ring ring;
                     ring.reserve(NUM_POINTS);
                     for (size_t i=0; i < NUM_POINTS;++i)
                     {
                         double x = i;
                         double y = NUM_POINTS-i;
-                        ring.add_coord(x, y);
+                        ring.emplace_back(x, y);
                     }
                     if (j == 0) poly.set_exterior_ring(std::move(ring));
                     else poly.add_hole(std::move(ring));
