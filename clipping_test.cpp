@@ -187,7 +187,7 @@ int main(int argc, char ** argv)
                 }
             }
         }
-        std::cerr << "OUPUT SIZE=" << output_size << std::endl;
+        if (i == 0) std::cerr << "OUPUT SIZE=" << output_size << std::endl;
     }
     std::cerr << "VALID OUTPUT : " << std::boolalpha << valid_output << std::endl;
     return EXIT_SUCCESS;
