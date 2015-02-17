@@ -32,6 +32,24 @@
 
 #include "geometry_impl.hpp"
 
+struct vertex_counter
+{
+    template <typename T>
+    std::size_t operator() (T const& adapter) const
+    {
+        std::size_t count = 0;
+        adapter.rewind(0);
+        for  (;;)
+        {
+            double x,y;
+            unsigned cmd = adapter.vertex(&x, &y);
+            if (cmd == mapnik::SEG_END) break;
+            ++count;
+        }
+        return count;
+    }
+};
+
 int main(int argc, char ** argv)
 {
     if (argc != 5)
@@ -46,7 +64,6 @@ int main(int argc, char ** argv)
         std::cerr << "sizeof(mapnik::new_geometry::polygon2)="<< sizeof(mapnik::new_geometry::polygon2) << std::endl;
         std::cerr << "sizeof(mapnik::new_geometry::polygon_vertex_adapter)="<< sizeof(mapnik::new_geometry::polygon_vertex_adapter) << std::endl;
         std::cerr << "sizeof(mapnik::new_geometry::polygon_vertex_adapter_2)="<< sizeof(mapnik::new_geometry::polygon_vertex_adapter_2) << std::endl;
-        std::cerr << "sizeof(mapnik::new_geometry::vertex_adapter)="<< sizeof(mapnik::new_geometry::vertex_adapter) << std::endl;
         std::cerr << "\n";
         std::cerr << "Usage:" << argv[0] << " <num-geom> <num-rings> <num-points> <method>" << std::endl;
         return 1;
@@ -132,15 +149,8 @@ int main(int argc, char ** argv)
             long count = 0;
             for (auto const& geom : geom_cont)
             {
-                mapnik::new_geometry::vertex_adapter v_adapter(geom);
-                v_adapter.rewind(0);
-                for  (;;)
-                {
-                    double x,y;
-                    unsigned cmd = v_adapter.vertex(&x, &y);
-                    if (cmd == mapnik::SEG_END) break;
-                    ++count;
-                }
+                vertex_counter counter;
+                count += mapnik::util::apply_visitor(mapnik::new_geometry::vertex_processor<vertex_counter>(counter), geom);
             }
             std::cerr << "--------count = " << count << std::endl;
         }
@@ -175,22 +185,8 @@ int main(int argc, char ** argv)
             long count = 0;
             for (auto const& geom : geom_cont)
             {
-                // slow because vertex(..) call uses visitation pattern
-                //mapnik::new_geometry::vertex_adapter v_adapter(geom);
-
-                // fast by using directly vertex adapter
-                if (geom.is<mapnik::new_geometry::polygon>())
-                {
-                    mapnik::new_geometry::polygon_vertex_adapter v_adapter(geom.get<mapnik::new_geometry::polygon>());
-                    v_adapter.rewind(0);
-                    for  (;;)
-                    {
-                        double x,y;
-                        unsigned cmd = v_adapter.vertex(&x, &y);
-                        if (cmd == mapnik::SEG_END) break;
-                        ++count;
-                    }
-                }
+                vertex_counter counter;
+                count += mapnik::util::apply_visitor(mapnik::new_geometry::vertex_processor<vertex_counter>(counter), geom);
             }
             std::cerr << "--------count = " << count << std::endl;
         }
@@ -225,22 +221,8 @@ int main(int argc, char ** argv)
             long count = 0;
             for (auto const& geom : geom_cont)
             {
-                // slow because vertex(..) call uses visitation pattern
-                //mapnik::new_geometry::vertex_adapter v_adapter(geom);
-
-                // fast by using directly vertex adapter
-                if (geom.is<mapnik::new_geometry::polygon2>())
-                {
-                    mapnik::new_geometry::polygon_vertex_adapter_2 v_adapter(geom.get<mapnik::new_geometry::polygon2>());
-                    v_adapter.rewind(0);
-                    for  (;;)
-                    {
-                        double x,y;
-                        unsigned cmd = v_adapter.vertex(&x, &y);
-                        if (cmd == mapnik::SEG_END) break;
-                        ++count;
-                    }
-                }
+                vertex_counter counter;
+                count += mapnik::util::apply_visitor(mapnik::new_geometry::vertex_processor<vertex_counter>(counter), geom);
             }
             std::cerr << "--------count = " << count << std::endl;
         }
@@ -276,18 +258,8 @@ int main(int argc, char ** argv)
             long count = 0;
             for (auto const& geom : geom_cont)
             {
-                if (geom.is<mapnik::new_geometry::polygon3>())
-                {
-                    mapnik::new_geometry::polygon_vertex_adapter_3 v_adapter(geom.get<mapnik::new_geometry::polygon3>());
-                    v_adapter.rewind(0);
-                    for  (;;)
-                    {
-                        double x,y;
-                        unsigned cmd = v_adapter.vertex(&x, &y);
-                        if (cmd == mapnik::SEG_END) break;
-                        ++count;
-                    }
-                }
+                vertex_counter counter;
+                count += mapnik::util::apply_visitor(mapnik::new_geometry::vertex_processor<vertex_counter>(counter), geom);
             }
             std::cerr << "--------count = " << count << std::endl;
         }
