@@ -2,7 +2,7 @@
  *
  * This file is part of Mapnik (c++ mapping toolkit)
  *
- * Copyright (C) 2014 Artem Pavlenko
+ * Copyright (C) 2015 Artem Pavlenko
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -153,7 +153,9 @@ struct polygon3
     }
 };
 
-using multi_polygon = std::vector<polygon3>;
+struct multi_point : std::vector<point> {};
+struct multi_line_string : std::vector<line_string> {};
+struct multi_polygon : std::vector<polygon3> {};
 
 struct polygon : vertex_sequence
 {
@@ -227,8 +229,8 @@ struct line_string_vertex_adapter
     line_string_vertex_adapter(line_string const& line)
         : line_(line),
           current_index_(0),
-          end_index_(line.data.size()),
-          first_(true) {}
+          end_index_(line.data.size())
+    {}
 
     unsigned vertex(double*x, double*y) const
     {
@@ -237,9 +239,8 @@ struct line_string_vertex_adapter
             point const& coord = line_.data[current_index_++];
             *x = coord.x;
             *y = coord.y;
-            if (first_)
+            if (current_index_ == 1)
             {
-                first_ = false;
                 return mapnik::SEG_MOVETO;
             }
             else
@@ -249,15 +250,14 @@ struct line_string_vertex_adapter
         }
         return mapnik::SEG_END;
     }
+
     void rewind(unsigned) const
     {
         current_index_ = 0;
-        first_ = true;
     }
     line_string const& line_;
     mutable std::size_t current_index_;
     const std::size_t end_index_;
-    mutable bool first_;
 
 };
 
