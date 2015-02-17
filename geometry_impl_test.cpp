@@ -155,48 +155,13 @@ int main(int argc, char ** argv)
             std::cerr << "--------count = " << count << std::endl;
         }
     }
+
     else if (METHOD == 3)
     {
         std::vector<mapnik::new_geometry::geometry> geom_cont;
         geom_cont.reserve(NUM_GEOM);
         {
-            mapnik::progress_timer __stats__(std::clog, "METHOD = 3 mapnik::new_geometry::polygon create");
-            for (std::size_t n = 0; n < NUM_GEOM; ++n)
-            {
-                mapnik::new_geometry::polygon poly;
-
-                for (std::size_t j =0 ; j < NUM_RINGS;++j)
-                {
-                    mapnik::new_geometry::line_string ring;
-                    ring.reserve(NUM_POINTS);
-                    for (size_t i=0; i < NUM_POINTS;++i)
-                    {
-                        double x = i;
-                        double y = NUM_POINTS-i;
-                        ring.add_coord(x, y);
-                    }
-                    poly.add_ring(std::move(ring));
-                }
-                geom_cont.emplace_back(std::move(poly));
-            }
-        }
-        {
-            mapnik::progress_timer __stats__(std::clog, "METHOD = 3 mapnik::new_geometry::polygon iterate");
-            long count = 0;
-            for (auto const& geom : geom_cont)
-            {
-                vertex_counter counter;
-                count += mapnik::util::apply_visitor(mapnik::new_geometry::vertex_processor<vertex_counter>(counter), geom);
-            }
-            std::cerr << "--------count = " << count << std::endl;
-        }
-    }
-    else if (METHOD == 4)
-    {
-        std::vector<mapnik::new_geometry::geometry> geom_cont;
-        geom_cont.reserve(NUM_GEOM);
-        {
-            mapnik::progress_timer __stats__(std::clog, "METHOD = 4 mapnik::new_geometry::polygon2 create");
+            mapnik::progress_timer __stats__(std::clog, "METHOD = 3 mapnik::new_geometry::polygon2 create");
             for (std::size_t n = 0; n < NUM_GEOM; ++n)
             {
                 mapnik::new_geometry::polygon2 poly;
@@ -217,7 +182,7 @@ int main(int argc, char ** argv)
             }
         }
         {
-            mapnik::progress_timer __stats__(std::clog, "METHOD = 4 mapnik::new_geometry::polygon2 iterate");
+            mapnik::progress_timer __stats__(std::clog, "METHOD = 3 mapnik::new_geometry::polygon2 iterate");
             long count = 0;
             for (auto const& geom : geom_cont)
             {
@@ -227,12 +192,12 @@ int main(int argc, char ** argv)
             std::cerr << "--------count = " << count << std::endl;
         }
     }
-    else if (METHOD == 5)
+    else if (METHOD == 4)
     {
         std::vector<mapnik::new_geometry::geometry> geom_cont;
         geom_cont.reserve(NUM_GEOM);
         {
-            mapnik::progress_timer __stats__(std::clog, "METHOD = 5 mapnik::new_geometry::polygon3 create");
+            mapnik::progress_timer __stats__(std::clog, "METHOD = 4 mapnik::new_geometry::polygon3 create");
             for (std::size_t n = 0; n < NUM_GEOM; ++n)
             {
                 mapnik::new_geometry::polygon3 poly;
@@ -254,7 +219,7 @@ int main(int argc, char ** argv)
             }
         }
         {
-            mapnik::progress_timer __stats__(std::clog, "METHOD = 5 mapnik::new_geometry::polygon3 iterate");
+            mapnik::progress_timer __stats__(std::clog, "METHOD = 4 mapnik::new_geometry::polygon3 iterate");
             long count = 0;
             for (auto const& geom : geom_cont)
             {
