@@ -2,7 +2,7 @@
  *
  * This file is part of Mapnik (c++ mapping toolkit)
  *
- * Copyright (C) 2014 Artem Pavlenko
+ * Copyright (C) 2015 Artem Pavlenko
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,11 +35,8 @@
 
 // register point
 BOOST_GEOMETRY_REGISTER_POINT_2D (mapnik::new_geometry::point, double, cs::cartesian, x, y)
-
-// register linestring
-//BOOST_GEOMETRY_REGISTER_LINESTRING(mapnik::new_geometry::line_string)
 // ring
-BOOST_GEOMETRY_REGISTER_RING(mapnik::new_geometry::line_string::cont_type)
+BOOST_GEOMETRY_REGISTER_RING(mapnik::new_geometry::linear_ring)
 
 namespace boost {
 
@@ -181,7 +178,17 @@ template<> struct tag<mapnik::new_geometry::polygon3>
     using type = polygon_tag;
 };
 
-// multi_polygon
+
+template<> struct tag<mapnik::new_geometry::multi_point>
+{
+    using type = multi_point_tag;
+};
+
+template<> struct tag<mapnik::new_geometry::multi_line_string>
+{
+    using type = multi_linestring_tag;
+};
+
 
 template<> struct tag<mapnik::new_geometry::multi_polygon>
 {
