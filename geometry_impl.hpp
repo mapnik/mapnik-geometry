@@ -423,152 +423,49 @@ private:
     mutable bool start_loop_;
 };
 
-
-using vertex_adapter_base =  mapnik::util::variant<point_vertex_adapter,
-                                                   line_string_vertex_adapter,
-                                                   polygon_vertex_adapter,
-                                                   polygon_vertex_adapter_2,
-                                                   polygon_vertex_adapter_3>;
-
-struct vertex_adapter
+//
+template <typename T>
+struct vertex_processor
 {
-    using base_type = vertex_adapter_base;
-    using coord_type = double;
-    using value_type = std::tuple<unsigned,coord_type,coord_type>;
-    using size_type = std::size_t;
-    struct create_adapter
+    using processor_type = T;
+    vertex_processor(processor_type const& proc)
+        : proc_(proc) {}
+
+    auto operator() (point const& pt) const
+        -> typename std::result_of<processor_type(point_vertex_adapter const&)>::type
     {
-        vertex_adapter_base operator() (point const& pt) const
-        {
-            return point_vertex_adapter(pt);
-        }
-
-        vertex_adapter_base operator() (line_string const& line) const
-        {
-            return line_string_vertex_adapter(line);
-        }
-
-        vertex_adapter_base operator() (polygon const& poly) const
-        {
-            return polygon_vertex_adapter(poly);
-        }
-
-        vertex_adapter_base operator() (polygon2 const& poly) const
-        {
-            return polygon_vertex_adapter_2(poly);
-        }
-        vertex_adapter_base operator() (polygon3 const& poly) const
-        {
-            return polygon_vertex_adapter_3(poly);
-        }
-    };
-
-    struct rewind_dispatch
-    {
-        template <typename T>
-        void operator() (T const& adapter) const
-        {
-            adapter.rewind(0);
-        }
-    };
-
-    struct vertex_dispatch
-    {
-        vertex_dispatch(double &x_, double &y_)
-            : x(x_),y(y_) {}
-
-        template <typename T>
-        unsigned operator() (T const& adapter) const
-        {
-            return adapter.vertex(&x, &y);
-        }
-
-        double & x;
-        double & y;
-    };
-
-    struct type_dispatch
-    {
-        geometry_types operator() (point_vertex_adapter const&) const
-        {
-            return Point;
-        }
-        geometry_types operator() (line_string_vertex_adapter const&) const
-        {
-            return LineString;
-        }
-        geometry_types operator() (polygon_vertex_adapter const&) const
-        {
-            return Polygon;
-        }
-        geometry_types operator() (polygon_vertex_adapter_2 const&) const
-        {
-            return Polygon;
-        }
-        geometry_types operator() (polygon_vertex_adapter_3 const&) const
-        {
-            return Polygon;
-        }
-    };
-
-    template<typename T>
-    vertex_adapter(T && adapter) noexcept
-        : base_(std::move(adapter)) {}
-
-    //template<typename T>
-    vertex_adapter(geometry const& geom)
-        : base_(mapnik::util::apply_visitor(create_adapter(), geom)) {}
-
-    void rewind(unsigned) const
-    {
-        mapnik::util::apply_visitor(vertex_adapter::rewind_dispatch(), base_);
+        point_vertex_adapter va(pt);
+        return proc_(va);
     }
 
-    unsigned vertex( double *x, double *y) const
+    auto operator() (line_string const& line)
+        -> typename std::result_of<processor_type(line_string_vertex_adapter const&)>::type
     {
-        return mapnik::util::apply_visitor(vertex_adapter::vertex_dispatch(*x, *y), base_);
+        line_string_vertex_adapter va(line);
+        return proc_(va);
+    }
+    auto operator() (polygon const& poly) const
+        -> typename std::result_of<processor_type(polygon_vertex_adapter const&)>::type
+    {
+        polygon_vertex_adapter va(poly);
+        return proc_(va);
     }
 
-    geometry_types type() const
+    auto operator() (polygon2 const& poly) const
+        -> typename std::result_of<processor_type(polygon_vertex_adapter_2 const&)>::type
     {
-        return mapnik::util::apply_visitor(vertex_adapter::type_dispatch(), base_);
+        polygon_vertex_adapter_2 va(poly);
+        return proc_(va);
     }
-    base_type base_;
-};
 
-struct vertex_adapter_factory
-{
-    struct dispatch
+    auto operator() (polygon3 const& poly) const
+        -> typename std::result_of<processor_type(polygon_vertex_adapter_3 const&)>::type
     {
-        vertex_adapter operator() (point const& pt) const
-        {
-            return point_vertex_adapter(pt);
-        }
-
-        vertex_adapter operator() (line_string const& line) const
-        {
-            return line_string_vertex_adapter(line);
-        }
-
-        vertex_adapter operator() (polygon const& poly) const
-        {
-            return polygon_vertex_adapter(poly);
-        }
-
-        vertex_adapter operator() (polygon2 const& poly) const
-        {
-            return polygon_vertex_adapter_2(poly);
-        }
-        vertex_adapter operator() (polygon3 const& poly) const
-        {
-            return polygon_vertex_adapter_3(poly);
-        }
-    };
-
-    static vertex_adapter create(geometry const& geom)
-    {
-        return mapnik::util::apply_visitor(vertex_adapter_factory::dispatch(), geom);
+        polygon_vertex_adapter_3 va(poly);
+        return proc_(va);
     }
+
+    processor_type const& proc_;
 };
 
 }}
